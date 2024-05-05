@@ -145,8 +145,8 @@ def main() -> None:
         ip_list = get_input()
         if not ip_list: 
             raise ValueError('[!] - No IP addresses were entered.')
-        x_apikey = '194ef8939834f124b686293f67c17712dd85accd631bb9bdecaa96bd04ceeaf3'
-        ipinfo_token = '78ed3c697b4845'
+        x_apikey = '<your api key>'
+        ipinfo_token = '<your token>'
         ip_check = IPChecker(x_apikey=x_apikey, ipinfo_token=ipinfo_token, ip_list=ip_list)
         data = ip_check.output_template()
     
