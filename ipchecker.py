@@ -5,7 +5,7 @@ import re
 
 
 __author__ = 'Natsu'
-__version__ = 'v0.1'
+__version__ = 'v0.2'
 
 # ANSI color codes
 class Colors:
@@ -55,6 +55,9 @@ class IPChecker:
         self.ip_list = ip_list
         self.ipinfo = IPInfo(token=ipinfo_token, ip_list=ip_list).get_info()
 
+    def __str__(self) -> str:
+        return f'\n[{Colors.WARNING}!{Colors.ENDC}] - This tool is intended solely for coding practice and should be used as a reference only.'
+    
     def get_an_ip_address_report(self) -> dict:
         '''
         Retrive reporst for a list of IP addresses using the VirusTotal API.
@@ -98,9 +101,23 @@ class IPChecker:
             'region': []
         }
         for ip in self.ip_list:
+            if is_private_ip(ip):
+                dic['ip'].append(f'{ip} (private)')
+                dic['asn'].append('None')
+                dic['malicious'].append('None')
+                dic['harmless'].append('None')
+                dic['undetected'].append('None')
+                dic['hostname'].append('None')
+                dic['anycast'].append('None')
+                dic['region'].append('None')
+                continue
+
             if ip in res:
                 total_detected = len (res[ip]['attributes']['last_analysis_results'])
-                dic['ip'].append(f'{ip} ({res[ip]["attributes"]["country"]})')
+                if 'country' in res[ip]['attributes'].keys():
+                    dic['ip'].append(f'{ip} ({res[ip]["attributes"]["country"]})')
+                else:
+                    dic['ip'].append(f'{ip}')
                 dic['asn'].append(res[ip]['attributes']['asn'])
                 dic['malicious'].append(f"{Colors.WARNING}{res[ip]['attributes']['last_analysis_stats']['malicious']}/{total_detected}{Colors.ENDC}")
                 dic['harmless'].append(f"{Colors.OKGREEN}{res[ip]['attributes']['last_analysis_stats']['harmless']}/{total_detected}{Colors.ENDC}")
@@ -140,6 +157,15 @@ def get_input() -> list:
     ip_list = [ip for ip in input_ip if validate_ipv4(ip)]
     return ip_list if ip_list else None
 
+def is_private_ip (ip: str) -> bool: 
+    import ipaddress
+    try: 
+        ip_obj = ipaddress.ip_address(ip)
+        return ip_obj.is_private
+    except ValueError as e: 
+        print (f'[!] - Invalid IP address: {e}')
+        return None
+    
 def main() -> None: 
     try: 
         ip_list = get_input()
@@ -152,13 +178,10 @@ def main() -> None:
     
         rows = [dict(zip(data.keys(), col)) for col in zip(*data.values())]
         print(tabulate(rows, headers="keys", tablefmt="fancy_grid"))
-        
+        print(ip_check)
     except ValueError as ve: 
         print (ve)
         exit(-1)
-        
+    
 if __name__ == "__main__":
     main()  
-    print (f'\n[{Colors.WARNING}!{Colors.ENDC}] - This tool is intended solely for coding practice and should be used as a reference only.')
-    
-    
